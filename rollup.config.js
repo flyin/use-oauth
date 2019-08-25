@@ -3,6 +3,7 @@ import resolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 
+// eslint-disable-next-line import/no-default-export
 export default {
     external: ['react', 'react-dom'],
     input: 'src/index.ts',
@@ -29,10 +30,6 @@ export default {
         }),
         commonjs({
             include: ['node_modules/**'],
-            namedExports: {
-                'node_modules/react/react.js': ['Children', 'Component', 'PropTypes', 'createElement'],
-                'node_modules/react-dom/index.js': ['render'],
-            },
         }),
     ],
 };
