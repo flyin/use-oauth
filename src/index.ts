@@ -3,10 +3,9 @@ import { openWindow } from './helpers';
 
 interface State {
     isCancelled: boolean;
-    isFatal: boolean;
+    isError: boolean;
     isLoading: boolean;
     isLoaded: boolean;
-    isSuccessful: boolean;
     provider: string;
     message?: string;
 }
@@ -26,10 +25,9 @@ interface HookParams {
 
 const initialState: State = {
     isCancelled: false,
-    isFatal: false,
+    isError: false,
     isLoading: false,
     isLoaded: false,
-    isSuccessful: false,
     provider: '',
     message: '',
 };
@@ -46,6 +44,7 @@ function getProviderURL(providerURL: ProviderURL, provider: string): string {
 function start(provider: string): State {
     return {
         ...initialState,
+        isLoading: true,
         provider: provider,
     };
 }
@@ -53,9 +52,6 @@ function start(provider: string): State {
 function cancel(provider: string): State {
     return {
         ...initialState,
-        isFatal: true,
-        isLoading: false,
-        isLoaded: false,
         isCancelled: true,
         provider: provider,
     };
@@ -66,9 +62,8 @@ function error(provider: string, message: string): State {
         ...initialState,
         message: message,
         provider: provider,
-        isLoading: false,
         isLoaded: true,
-        isFatal: true,
+        isError: true,
     };
 }
 
