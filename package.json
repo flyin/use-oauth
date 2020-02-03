@@ -1,6 +1,6 @@
 {
   "name": "@flyin/use-oauth",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "use-oauth",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
