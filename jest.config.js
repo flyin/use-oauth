@@ -1,12 +1,16 @@
 module.exports = {
-    moduleDirectories: ['node_modules', 'src'],
-    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-    setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-    testEnvironment: 'jsdom',
-    testPathIgnorePatterns: ['<rootDir>/node_modules/'],
-    testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
-    transform: {
-        '^.+\\.tsx?$': 'ts-jest',
+  globals: {
+    'ts-jest': {
+      babelConfig: true,
     },
-    verbose: true,
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js'],
+  setupFilesAfterEnv: ['<rootDir>/node_modules/jest-enzyme/lib/index.js'],
+  setupFiles: ['<rootDir>/jest.setup.js'],
+  testPathIgnorePatterns: ['<rootDir>/build/', '<rootDir>/node_modules/', '<rootDir>/public/'],
+  testEnvironment: 'jsdom',
+  transform: {
+    '.*': 'babel-jest',
+    '^.+\\.tsx?$': 'ts-jest',
+  },
 };
