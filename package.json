@@ -1,6 +1,6 @@
 {
   "name": "@flyin/use-oauth",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "use-oauth",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -65,5 +65,10 @@
       "eslint --fix",
       "git add"
     ]
-  }
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ]
 }
