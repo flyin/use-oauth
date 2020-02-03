@@ -90,14 +90,17 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
     return (): void => clearInterval(interval);
   }, [state.isLoading, state.provider]);
 
-  const auth = useCallback((provider: string): void => {
-    setState(start(provider));
-    openedWindow.current = openWindow(getProviderURL(providerURL, provider), 'Auth', 660, 370);
+  const auth = useCallback(
+    (provider: string): void => {
+      setState(start(provider));
+      openedWindow.current = openWindow(getProviderURL(providerURL, provider), 'Auth', 660, 370);
 
-    if (!openedWindow.current) {
-      setState(error(provider, "Can't open window"));
-    }
-  }, []);
+      if (!openedWindow.current) {
+        setState(error(provider, "Can't open window"));
+      }
+    },
+    [providerURL],
+  );
 
   const focus = useCallback(() => {
     if (openedWindow.current) {
@@ -118,7 +121,7 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
         onSuccess(nextState);
       }
     },
-    [state],
+    [onSuccess, state],
   );
 
   useEffect(() => {
