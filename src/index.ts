@@ -1,4 +1,4 @@
-import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { openWindow } from './helpers';
 
 interface State {
@@ -6,8 +6,9 @@ interface State {
   isError: boolean;
   isLoading: boolean;
   isLoaded: boolean;
-  provider: string;
+  provider?: string;
   message?: string;
+  payload?: string;
 }
 
 interface Hook {
@@ -28,8 +29,6 @@ const initialState: State = {
   isError: false,
   isLoading: false,
   isLoaded: false,
-  provider: '',
-  message: '',
 };
 
 function getProviderURL(providerURL: ProviderURL, provider: string): string {
@@ -49,26 +48,24 @@ function start(provider: string): State {
   };
 }
 
-function cancel(provider: string): State {
+function cancel(): State {
   return {
     ...initialState,
     isCancelled: true,
-    provider: provider,
   };
 }
 
-function error(provider: string, message: string): State {
+function error(message: string): State {
   return {
     ...initialState,
     message: message,
-    provider: provider,
     isLoaded: true,
     isError: true,
   };
 }
 
 export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
-  const openedWindow: MutableRefObject<Window | null> = useRef(null);
+  const openedWindow = useRef<Window | null>(null);
   const [state, setState] = useState(initialState);
 
   // check window state
@@ -82,7 +79,7 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
         clearInterval(interval);
 
         if (state.isLoading) {
-          setState(cancel(state.provider));
+          setState(cancel());
         }
       }, 150);
     }
@@ -96,7 +93,7 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
       openedWindow.current = openWindow(getProviderURL(providerURL, provider), 'Auth', 660, 370);
 
       if (!openedWindow.current) {
-        setState(error(provider, "Can't open window"));
+        setState(error("Can't open window"));
       }
     },
     [providerURL],
@@ -114,14 +111,17 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
         return;
       }
 
-      const nextState = { ...state, ...event.data };
-      setState(nextState);
+      setState(prevState => {
+        const nextState = { ...prevState, payload: event.data.payload };
 
-      if (typeof onSuccess === 'function') {
-        onSuccess(nextState);
-      }
+        if (typeof onSuccess === 'function') {
+          setTimeout(() => onSuccess(nextState));
+        }
+
+        return nextState;
+      });
     },
-    [onSuccess, state],
+    [onSuccess],
   );
 
   useEffect(() => {
@@ -129,5 +129,5 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
     return (): void => window.removeEventListener('message', windowMessageListener);
   }, [windowMessageListener]);
 
-  return { auth, focus, state };
+  return useMemo(() => ({ auth, focus, state }), [auth, focus, state]);
 }
