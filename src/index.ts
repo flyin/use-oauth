@@ -106,12 +106,12 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
   }, [openedWindow]);
 
   const windowMessageListener = useCallback(
-    event => {
+    (event) => {
       if (event.data.source !== 'auth') {
         return;
       }
 
-      setState(prevState => {
+      setState((prevState) => {
         const nextState = { ...prevState, payload: event.data.payload };
 
         if (typeof onSuccess === 'function') {

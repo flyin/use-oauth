@@ -1,6 +1,6 @@
 {
   "name": "@flyin/use-oauth",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "use-oauth",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -8,8 +8,8 @@
   "scripts": {
     "build": "rollup -c",
     "start": "rollup -c -w",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint --ext .ts,.tsx,.js,.jsx .",
+    "lint:fix": "eslint --fix --ext .ts,.tsx,.js,.jsx .",
     "test": "jest",
     "test:watch": "jest --watch",
     "prepublishOnly": "npm run build"
@@ -67,6 +67,7 @@
   },
   "files": [
     "dist",
+    "src",
     "package.json",
     "README.md"
   ],
