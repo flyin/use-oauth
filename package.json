@@ -1,6 +1,6 @@
 {
   "name": "@flyin/use-oauth",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "use-oauth",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -71,8 +71,5 @@
     "package.json",
     "README.md"
   ],
-  "dependencies": {
-    "@xstate/react": "0.8.1",
-    "xstate": "4.8.0"
-  }
+  "dependencies": {}
 }
