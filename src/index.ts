@@ -22,6 +22,11 @@ type ProviderURL = ((provider: string) => string) | string;
 interface HookParams {
   onSuccess?: (state: State) => void;
   providerURL: ProviderURL;
+
+  windowParams?: {
+    width: number;
+    height: number;
+  };
 }
 
 const initialState: State = {
@@ -64,7 +69,7 @@ function error(message: string): State {
   };
 }
 
-export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
+export function useOAuth({ onSuccess, providerURL, windowParams }: HookParams): Hook {
   const openedWindow = useRef<Window | null>(null);
   const [state, setState] = useState(initialState);
 
@@ -90,13 +95,18 @@ export function useOAuth({ onSuccess, providerURL }: HookParams): Hook {
   const auth = useCallback(
     (provider: string): void => {
       setState(start(provider));
-      openedWindow.current = openWindow(getProviderURL(providerURL, provider), 'Auth', 660, 370);
+      openedWindow.current = openWindow(
+        getProviderURL(providerURL, provider),
+        'Auth',
+        windowParams?.width ?? 660,
+        windowParams?.height ?? 370,
+      );
 
       if (!openedWindow.current) {
         setState(error("Can't open window"));
       }
     },
-    [providerURL],
+    [providerURL, windowParams],
   );
 
   const focus = useCallback(() => {
