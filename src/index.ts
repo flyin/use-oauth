@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { openWindow } from './helpers';
 
-interface State {
+export interface State {
   isCancelled: boolean;
   isError: boolean;
   isLoading: boolean;
   isLoaded: boolean;
   provider?: string;
   message?: string;
-  payload?: string;
+  payload?: { [key: string]: string };
 }
 
-interface Hook {
+export interface Hook {
   auth: (provider: string) => void;
   focus: () => void;
   state: State;
@@ -19,7 +19,7 @@ interface Hook {
 
 type ProviderURL = ((provider: string) => string) | string;
 
-interface HookParams {
+export interface HookParams {
   onSuccess?: (state: State) => void;
   providerURL: ProviderURL;
 
