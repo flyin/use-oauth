@@ -15,16 +15,19 @@ export function openWindow(url: string, title: string, w: number, h: number): Wi
 
   const features = [];
 
-  if (targetWidth !== null) {
+  if (targetWidth) {
     features.push('width=' + targetWidth);
   }
 
-  if (targetHeight !== null) {
+  if (targetHeight) {
     features.push('height=' + targetHeight);
   }
 
-  features.push('left=' + left);
-  features.push('top=' + right);
+  if (targetHeight && targetWidth) {
+    features.push('left=' + left);
+    features.push('top=' + right);
+  }
+
   features.push('scrollbars=1');
 
   const newWindow = window.open(url, title, features.join(','));
