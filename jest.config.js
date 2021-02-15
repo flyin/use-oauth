@@ -1,10 +1,8 @@
 module.exports = {
-  moduleFileExtensions: ['ts', 'tsx', 'js'],
-  setupFilesAfterEnv: ['<rootDir>/node_modules/jest-enzyme/lib/index.js'],
-  setupFiles: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jsdom',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transform: {
-    '.*': 'babel-jest',
+    '^.+\\.tsx?$': 'ts-jest',
   },
+  setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/dist/'],
-};
+}

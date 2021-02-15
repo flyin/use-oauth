@@ -1,9 +1,8 @@
-import commonjs from '@rollup/plugin-commonjs';
-import resolve from '@rollup/plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript2';
-import pkg from './package.json';
+import commonjs from '@rollup/plugin-commonjs'
+import resolve from '@rollup/plugin-node-resolve'
+import typescript from 'rollup-plugin-typescript2'
+import pkg from './package.json'
 
-// eslint-disable-next-line import/no-default-export
 export default {
   external: ['react', 'react-dom'],
   input: 'src/index.ts',
@@ -31,4 +30,4 @@ export default {
       include: ['node_modules/**'],
     }),
   ],
-};
+}
