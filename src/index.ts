@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { openWindow } from './helpers'
 
 export type OAuthState = {
@@ -44,6 +44,11 @@ const reducer = (state: OAuthState, action: Action): OAuthState => {
     case 'error': {
       return { ...state, isError: true, isLoading: false, payload: action.payload }
     }
+    default: {
+      // It's important to handle the default case where the action
+      // does not match any of the existing action types
+      return state;
+    }
   }
 }
 
@@ -51,59 +56,67 @@ export function useOAuth() {
   const openedWindow = useRef<Window | null>(null)
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  const start = useCallback(
-    (providerURL: string, options: Options): Promise<unknown> =>
-      new Promise((resolve, reject) => {
-        dispatch({ type: 'start' })
+  const start = useCallback((providerURL: string, options: Options = {}): Promise<unknown> => {
+    dispatch({ type: 'start' });
 
-        openedWindow.current = openWindow(
-          providerURL,
-          'Auth',
+    const width = options.window?.width ?? 660;
+    const height = options.window?.height ?? 370;
 
-          options.window?.width ?? 660,
-          options.window?.height ?? 370,
-        )
+    openedWindow.current = openWindow(
+      providerURL,
+      'Auth',
+      width,
+      height,
+    );
 
-        if (!openedWindow.current) {
-          const payload = { message: "Can't open window" }
-          dispatch({ type: 'error', payload })
-          return reject(payload)
+    if (!openedWindow.current) {
+      const payload = { message: "Can't open window" };
+      dispatch({ type: 'error', payload });
+      return Promise.reject(payload);
+    }
+
+    const messageListener = (event: MessageEvent): void => {
+      if (event.origin !== new URL(providerURL).origin || event.data.source !== 'oauth') {
+        // Payload must be from the same origin and have 'oauth' source
+        return;
+      }
+
+      window.removeEventListener('message', messageListener);
+      dispatch({ type: 'complete', payload: event.data.payload });
+    };
+
+    window.addEventListener('message', messageListener);
+
+    return new Promise((resolve, reject) => {
+      const intervalId = window.setInterval(() => {
+        if (openedWindow.current && !openedWindow.current.closed) return;
+        clearInterval(intervalId);
+        window.removeEventListener('message', messageListener);
+
+        if (state.isCompleted) {
+          resolve(state.payload);
+        } else {
+          const payload = { message: 'The authentication window was closed before completion.' };
+          dispatch({ type: 'cancel', payload });
+          reject(payload);
         }
+      }, 100);
+    });
+  }, []);
 
-        let isDone = false
-
-        const messageListener = (event: MessageEvent): void => {
-          if (event.data.source !== 'oauth') {
-            return
-          }
-
-          window.removeEventListener('message', messageListener)
-          isDone = true
-          dispatch({ type: 'complete' })
-          resolve(event.data.payload)
-        }
-
-        window.addEventListener('message', messageListener)
-
-        const intervalId = window.setInterval(() => {
-          if (openedWindow.current && !openedWindow.current.closed) return
-          clearInterval(intervalId)
-
-          if (!isDone) {
-            const payload = { message: "Can't open window" }
-            dispatch({ type: 'cancel', payload })
-            reject(payload)
-          }
-        }, 100)
-      }),
-    [],
-  )
+  useEffect(() => {
+    // Clean up the message listener when the component using this hook gets unmounted
+    return () => {
+      if (openedWindow.current) {
+        window.removeEventListener('message', messageListener);
+      }
+    };
+  }, []);
 
   const focus = useCallback(() => {
-    if (openedWindow.current && !openedWindow.current.closed) {
-      openedWindow.current.focus()
-    }
-  }, [])
+    openedWindow.current?.focus();
+  }, []);
 
-  return useMemo(() => ({ start, focus, state }), [focus, start, state])
+  return useMemo(() => ({ start, focus, state }), [focus, start, state]);
 }
+
