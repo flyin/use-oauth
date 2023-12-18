@@ -1,8 +1,11 @@
+// Function to open a new window with specified URL, title, width, and height.
 export function openWindow(url: string, title: string, w: number, h: number): Window | null {
+  // Get the user agent string and determine if the device is mobile.
   const userAgent = navigator.userAgent,
     isMobile = (): boolean =>
       /\b(iPhone|iP[ao]d)/.test(userAgent) || /\b(iP[ao]d)/.test(userAgent) || /Android/i.test(userAgent) || /Mobile/i.test(userAgent)
 
+  // Calculate the position and size for the new window.
   const screenX = typeof window.screenX !== 'undefined' ? window.screenX : window.screenLeft
   const screenY = typeof window.screenY !== 'undefined' ? window.screenY : window.screenTop
   const outerWidth = typeof window.outerWidth !== 'undefined' ? window.outerWidth : document.documentElement.clientWidth
@@ -13,6 +16,7 @@ export function openWindow(url: string, title: string, w: number, h: number): Wi
   const left = v + (outerWidth - targetWidth) / 2
   const right = screenY + (outerHeight - targetHeight) / 2.5
 
+  // Construct features string for window.open parameters like width, height, position.
   const features = []
 
   if (targetWidth) {
@@ -30,8 +34,10 @@ export function openWindow(url: string, title: string, w: number, h: number): Wi
 
   features.push('scrollbars=1')
 
+  // Open the new window with the composed features.
   const newWindow = window.open(url, title, features.join(','))
 
+  // Attempt to focus on the new window if it exists.
   if (newWindow && newWindow.focus) {
     newWindow.focus()
   }
