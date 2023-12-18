@@ -32,78 +32,72 @@ type Options = {
 
 const reducer = (state: OAuthState, action: Action): OAuthState => {
   switch (action.type) {
-    case 'start': {
+    case 'start':
       return { ...initialState, isLoading: true }
-    }
-    case 'complete': {
+    case 'complete':
       return { ...state, isCompleted: true, isLoading: false, payload: action.payload }
-    }
-    case 'cancel': {
-      return { ...state, isCancelled: true, isLoading: false }
-    }
-    case 'error': {
-      return { ...state, isError: true, isLoading: false, payload: action.payload }
-    }
+    case 'cancel':
+      return { ...initialState, isCancelled: true }
+    case 'error':
+      return { ...initialState, isError: true, payload: action.payload }
+    default:
+      return state; // Added a default case to handle any action types that are not expected
   }
 }
 
 export function useOAuth() {
-  const openedWindow = useRef<Window | null>(null)
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  const start = useCallback(
-    (providerURL: string, options: Options): Promise<unknown> =>
-      new Promise((resolve, reject) => {
-        dispatch({ type: 'start' })
+  const openedWindowRef = useRef<Window | null>(null)
 
-        openedWindow.current = openWindow(
-          providerURL,
-          'Auth',
-
-          options.window?.width ?? 660,
-          options.window?.height ?? 370,
-        )
-
-        if (!openedWindow.current) {
-          const payload = { message: "Can't open window" }
-          dispatch({ type: 'error', payload })
-          return reject(payload)
-        }
-
-        let isDone = false
-
-        const messageListener = (event: MessageEvent): void => {
-          if (event.data.source !== 'oauth') {
-            return
-          }
-
-          window.removeEventListener('message', messageListener)
-          isDone = true
-          dispatch({ type: 'complete' })
-          resolve(event.data.payload)
-        }
-
-        window.addEventListener('message', messageListener)
-
-        const intervalId = window.setInterval(() => {
-          if (openedWindow.current && !openedWindow.current.closed) return
-          clearInterval(intervalId)
-
-          if (!isDone) {
-            const payload = { message: "Can't open window" }
-            dispatch({ type: 'cancel', payload })
-            reject(payload)
-          }
-        }, 100)
-      }),
-    [],
-  )
-
-  const focus = useCallback(() => {
-    if (openedWindow.current && !openedWindow.current.closed) {
-      openedWindow.current.focus()
+  const start = useCallback((providerURL: string, options: Options = {}) => {
+    dispatch({ type: 'start' })
+    const width = options.window?.width ?? 660
+    const height = options.window?.height ?? 370
+    
+    const newWindow = openWindow(providerURL, 'Auth', width, height)
+    if (!newWindow) {
+      const payload = { message: "Can't open window" }
+      dispatch({ type: 'error', payload })
+      return Promise.reject(payload)
     }
+
+    openedWindowRef.current = newWindow
+    let isDone = false
+
+    return new Promise<unknown>((resolve, reject) => {
+      const messageListener = (event: MessageEvent): void => {
+        if (event.origin !== new URL(providerURL).origin || event.data.source !== 'oauth') {
+          return
+        }
+
+        window.removeEventListener('message', messageListener)
+        clearInterval(intervalId)
+        isDone = true
+        dispatch({ type: 'complete', payload: event.data.payload })
+        resolve(event.data.payload)
+      }
+
+      window.addEventListener('message', messageListener)
+
+      const intervalId = window.setInterval(() => {
+        if (openedWindowRef.current && !openedWindowRef.current.closed) return
+
+        clearInterval(intervalId)
+        window.removeEventListener('message', messageListener)
+
+        if (!isDone) {
+          const payload = { message: "User closed the window" }
+          dispatch({ type: 'cancel', payload })
+          reject(payload)
+        }
+      }, 100)
+    })
   }, [])
 
-  return useMemo(() => ({ start, focus, state }), [focus, start, state])
+  const focus = useCallback(() => {
+    openedWindowRef.current?.focus()
+  }, [])
+
+  return useMemo(() => ({ start, focus, state }), [start, focus, state])
 }
